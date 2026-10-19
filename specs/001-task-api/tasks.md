@@ -1,0 +1,36 @@
+# Tâches — Spec 001 (API de gestion des tâches)
+
+> Ordre imposé. Pour chaque tâche : test qui échoue → code → `php bin/phpunit` vert → commit `type(scope): message [T-XX, AC-YY]` → case cochée.
+
+## Phase 0 — Socle
+
+- [ ] **T-01** Installer les dépendances : `api`, `orm`, `symfony/uid`, `phpunit`, `dama/doctrine-test-bundle`, `phpstan`, `php-cs-fixer` — *aucun AC*
+- [ ] **T-02** Configurer `api_platform.yaml` (formats JSON, pagination 20/50, erreurs `problem+json`) et la base de test — *ENF-02*
+- [ ] **T-03** `GET /health` avec vérification de la base — *AC-01*
+
+## Phase 1 — Création
+
+- [ ] **T-04** Entité `Task` + migration + `POST /api/tasks` avec valeurs par défaut — *AC-02*
+- [ ] **T-05** Contraintes sur `title` (trim, NotBlank, Length 255) — *AC-03, AC-04*
+- [ ] **T-06** Contraintes `Choice` sur `status` et `priority` — *AC-05*
+- [ ] **T-07** Contrainte sur `dueDate` (pas dans le passé, seulement si modifiée) — *AC-06*
+- [ ] **T-08** Groupes de sérialisation : champs générés ignorés en écriture — *AC-07*
+
+## Phase 2 — Lecture
+
+- [ ] **T-09** `GET /api/tasks/{id}` et `404` sur UUID inconnu — *AC-08, AC-09*
+- [ ] **T-10** `GET /api/tasks` trié par `createdAt` décroissant — *AC-10*
+- [ ] **T-11** Filtre `status` / `priority` — *AC-11*
+- [ ] **T-12** Pagination `itemsPerPage` plafonnée à 50 — *AC-12*
+
+## Phase 3 — Modification et suppression
+
+- [ ] **T-13** `PATCH` merge-patch + `updatedAt` automatique — *AC-13*
+- [ ] **T-14** Validation au `PATCH`, tâche inchangée en cas d'erreur — *AC-14*
+- [ ] **T-15** `DELETE` — *AC-15*
+
+## Phase 4 — Vérification
+
+- [ ] **T-16** Simulateur Postman vert contre l'API locale (`npm test` dans le worktree QA)
+- [ ] **T-17** Test de contrat vert (`npm run test:contract`)
+- [ ] **T-18** `/verify specs/001-task-api` : matrice de traçabilité 15/15 AC couverts
