@@ -1,0 +1,839 @@
+{
+  "info": {
+    "_postman_id": "7a30099d-b270-4f1c-bc6d-12b8c4de5292",
+    "name": "TaskPilot — Spec 001 (API des tâches)",
+    "description": "Une requête par critère d'acceptation de specs/001-task-api/spec.md. Le nom de chaque requête commence par son identifiant AC-XX.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const path = pm.request.url.getPath();",
+          "if (path.startsWith(\"/api/tasks\") && [200, 201].includes(pm.response.code)) {",
+          "  const taskSchema = {",
+          "    type: \"object\",",
+          "    required: [\"id\", \"title\", \"description\", \"status\", \"priority\", \"dueDate\", \"createdAt\", \"updatedAt\"],",
+          "    properties: {",
+          "      id: { type: \"string\" },",
+          "      title: { type: \"string\", minLength: 1, maxLength: 255 },",
+          "      description: { type: [\"string\", \"null\"] },",
+          "      status: { enum: [\"todo\", \"in_progress\", \"done\"] },",
+          "      priority: { enum: [\"low\", \"medium\", \"high\"] },",
+          "      dueDate: { type: [\"string\", \"null\"] },",
+          "      createdAt: { type: \"string\" },",
+          "      updatedAt: { type: \"string\" }",
+          "    }",
+          "  };",
+          "  const body = pm.response.json();",
+          "  pm.test(\"Contrat : schéma Task respecté\", () => {",
+          "    pm.response.to.have.jsonSchema(Array.isArray(body) ? { type: \"array\", items: taskSchema } : taskSchema);",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "taskId",
+      "value": ""
+    },
+    {
+      "key": "taskTitle",
+      "value": ""
+    },
+    {
+      "key": "taskCreatedAt",
+      "value": ""
+    },
+    {
+      "key": "futureDate",
+      "value": ""
+    },
+    {
+      "key": "longTitle",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 · Santé",
+      "item": [
+        {
+          "name": "AC-01 · GET /health → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"API et base OK\", () => pm.expect(pm.response.json()).to.eql({ status: \"ok\", database: \"ok\" }));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 · Création",
+      "item": [
+        {
+          "name": "AC-02 · POST tâche valide → 201 + valeurs par défaut",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"  Relire le rapport trimestriel  \",\n  \"dueDate\": \"{{futureDate}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = new Date(Date.now() + 7 * 86400000);",
+                  "pm.collectionVariables.set(\"futureDate\", d.toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 201\", () => pm.response.to.have.status(201));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"Un id est généré\", () => pm.expect(t.id).to.match(/^[0-9a-f-]{36}$/i));",
+                  "pm.test(\"RM-01 : le titre est nettoyé\", () => pm.expect(t.title).to.eql(\"Relire le rapport trimestriel\"));",
+                  "pm.test(\"Valeurs par défaut todo / medium\", () => { pm.expect(t.status).to.eql(\"todo\"); pm.expect(t.priority).to.eql(\"medium\"); });",
+                  "pm.test(\"createdAt et updatedAt renseignés\", () => { pm.expect(t.createdAt).to.be.a(\"string\"); pm.expect(t.updatedAt).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"taskId\", t.id);",
+                  "pm.collectionVariables.set(\"taskTitle\", t.title);",
+                  "pm.collectionVariables.set(\"taskCreatedAt\", t.createdAt);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-03 · POST sans titre → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priority\": \"high\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur title\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"title\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-03 · POST titre composé d'espaces → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"    \"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur title\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"title\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-04 · POST titre de 256 caractères → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"title\": \"{{longTitle}}\" }"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"longTitle\", \"a\".repeat(256));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur title\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"title\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-05 · POST statut hors énumération → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Statut invalide\",\n  \"status\": \"archived\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur status\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"status\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-06 · POST échéance passée → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"En retard\",\n  \"dueDate\": \"2000-01-01\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur dueDate\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"dueDate\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-07 · POST id et createdAt imposés → ignorés",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tentative d'injection\",\n  \"id\": \"11111111-1111-1111-1111-111111111111\",\n  \"createdAt\": \"1999-12-31T23:59:59+00:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 201\", () => pm.response.to.have.status(201));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"L'id envoyé est ignoré\", () => pm.expect(t.id).to.not.eql(\"11111111-1111-1111-1111-111111111111\"));",
+                  "pm.test(\"Le createdAt envoyé est ignoré\", () => pm.expect(t.createdAt).to.not.include(\"1999\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SETUP · POST tâche in_progress (pour les filtres)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Préparer la démo\",\n  \"status\": \"in_progress\",\n  \"priority\": \"high\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 · Lecture",
+      "item": [
+        {
+          "name": "AC-08 · GET tâche existante → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"C'est la bonne tâche\", () => { const t = pm.response.json(); pm.expect(t.id).to.eql(pm.collectionVariables.get(\"taskId\")); pm.expect(t.title).to.eql(pm.collectionVariables.get(\"taskTitle\")); });",
+                  "pm.test(\"ENF-01 : réponse en moins de 200 ms\", () => pm.expect(pm.response.responseTime).to.be.below(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-09 · GET UUID inconnu → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/0192f000-0000-7000-8000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "0192f000-0000-7000-8000-000000000000"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-10 · GET liste → 200 triée par date décroissante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "const list = pm.response.json();",
+                  "pm.test(\"La réponse est un tableau\", () => pm.expect(list).to.be.an(\"array\"));",
+                  "pm.test(\"RM-03 : tri par createdAt décroissant\", () => { for (let i = 1; i < list.length; i++) pm.expect(list[i - 1].createdAt >= list[i].createdAt, \"ordre à l'index \" + i).to.be.true; });",
+                  "pm.test(\"La tâche créée est présente\", () => pm.expect(list.map(t => t.id)).to.include(pm.collectionVariables.get(\"taskId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-11 · GET filtre status=todo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?status=todo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "todo"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "const list = pm.response.json();",
+                  "pm.test(\"Au moins un résultat\", () => pm.expect(list.length).to.be.above(0));",
+                  "pm.test(\"Uniquement des tâches todo\", () => list.forEach(t => pm.expect(t.status).to.eql(\"todo\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-12 · GET itemsPerPage=1 → 1 élément max",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?itemsPerPage=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "itemsPerPage",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Au plus 1 élément\", () => pm.expect(pm.response.json().length).to.be.at.most(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-12 · GET itemsPerPage=500 → plafonné à 50",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?itemsPerPage=500",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "itemsPerPage",
+                  "value": "500"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"RM-04 : 50 éléments maximum\", () => pm.expect(pm.response.json().length).to.be.at.most(50));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 · Modification",
+      "item": [
+        {
+          "name": "AC-13 · PATCH statut done → 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/merge-patch+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"done\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "const t = pm.response.json();",
+                  "pm.test(\"Le statut est done\", () => pm.expect(t.status).to.eql(\"done\"));",
+                  "pm.test(\"Le titre est inchangé\", () => pm.expect(t.title).to.eql(pm.collectionVariables.get(\"taskTitle\")));",
+                  "pm.test(\"updatedAt ≥ createdAt\", () => pm.expect(new Date(t.updatedAt) >= new Date(t.createdAt)).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-14 · PATCH titre vide → 422",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/merge-patch+json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"ENF-02 : format application/problem+json\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\"));",
+                  "pm.test(\"Une violation porte sur title\", () => {",
+                  "  const v = pm.response.json().violations || [];",
+                  "  pm.expect(v.map(x => x.propertyPath)).to.include(\"title\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-14 · GET après PATCH refusé → tâche inchangée",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Le titre n'a pas été modifié\", () => pm.expect(pm.response.json().title).to.eql(pm.collectionVariables.get(\"taskTitle\")));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 · Suppression",
+      "item": [
+        {
+          "name": "AC-15 · DELETE → 204",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AC-15 · GET après suppression → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tasks",
+                "{{taskId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
