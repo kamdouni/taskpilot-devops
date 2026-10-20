@@ -33,4 +33,4 @@
 
 - [x] **T-16** Simulateur Postman vert contre l'API locale (`npm test` dans le worktree QA)
 - [x] **T-17** Test de contrat vert (`npm run test:contract`)
-- [ ] **T-18** `/verify specs/001-task-api` : matrice de traçabilité 15/15 AC couverts
+- [x] **T-18** `/verify specs/001-task-api` : matrice de traçabilité 15/15 AC couverts
