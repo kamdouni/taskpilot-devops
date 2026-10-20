@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -17,7 +18,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
-    operations: [new Post()],
+    operations: [new Get(), new Post()],
     formats: ['json'],
     normalizationContext: ['groups' => ['task:read']],
     // RM-05 : id, createdAt et updatedAt ne sont pas dans le groupe d'écriture, donc ignorés

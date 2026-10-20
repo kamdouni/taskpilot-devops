@@ -30,4 +30,17 @@ abstract class JsonApiTestCase extends ApiTestCase
         self::assertIsArray($problem['violations'] ?? null);
         self::assertContains($propertyPath, array_column($problem['violations'], 'propertyPath'));
     }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    protected static function createTask(array $payload = ['title' => 'Rédiger la spec']): array
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', ['json' => $payload]);
+        self::assertResponseStatusCodeSame(201);
+
+        return $response->toArray();
+    }
 }
