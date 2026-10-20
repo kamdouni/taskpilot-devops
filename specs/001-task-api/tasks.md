@@ -26,7 +26,7 @@
 ## Phase 3 — Modification et suppression
 
 - [x] **T-13** `PATCH` merge-patch + `updatedAt` automatique — *AC-13*
-- [ ] **T-14** Validation au `PATCH`, tâche inchangée en cas d'erreur — *AC-14*
+- [x] **T-14** Validation au `PATCH`, tâche inchangée en cas d'erreur — *AC-14*
 - [ ] **T-15** `DELETE` — *AC-15*
 
 ## Phase 4 — Vérification

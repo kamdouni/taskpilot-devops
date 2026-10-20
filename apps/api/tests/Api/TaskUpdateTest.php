@@ -64,4 +64,26 @@ final class TaskUpdateTest extends JsonApiTestCase
 
         return $connection;
     }
+
+    public function testAC14RejectsBlankTitleAndLeavesTaskUnchanged(): void
+    {
+        $created = self::createTask(['title' => 'Rédiger la spec', 'priority' => 'high']);
+
+        $response = self::patchTask($created['id'], ['title' => '', 'status' => 'done']);
+
+        self::assertViolationOn($response, 'title');
+        $current = static::createJsonClient()->request('GET', '/api/tasks/'.$created['id'])->toArray();
+        self::assertSame($created, $current);
+    }
+
+    public function testAC14RejectsNewPastDueDateOnPatch(): void
+    {
+        $created = self::createTask();
+
+        $response = self::patchTask($created['id'], ['dueDate' => (new \DateTimeImmutable('yesterday'))->format('Y-m-d')]);
+
+        self::assertViolationOn($response, 'dueDate');
+        $current = static::createJsonClient()->request('GET', '/api/tasks/'.$created['id'])->toArray();
+        self::assertSame($created, $current);
+    }
 }
