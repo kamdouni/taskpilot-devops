@@ -34,3 +34,7 @@
 - [x] **T-16** Simulateur Postman vert contre l'API locale (`npm test` dans le worktree QA)
 - [x] **T-17** Test de contrat vert (`npm run test:contract`)
 - [x] **T-18** `/verify specs/001-task-api` : matrice de traçabilité 15/15 AC couverts
+
+## Phase 5 — Documentation
+
+- [x] **T-19** Documentation interactive : `/health` dans `/api/docs` et contrat dans Swagger UI sur `/api/contract` — *ENF-04*
