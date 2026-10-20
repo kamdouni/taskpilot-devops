@@ -31,6 +31,6 @@
 
 ## Phase 4 — Vérification
 
-- [ ] **T-16** Simulateur Postman vert contre l'API locale (`npm test` dans le worktree QA)
+- [x] **T-16** Simulateur Postman vert contre l'API locale (`npm test` dans le worktree QA)
 - [ ] **T-17** Test de contrat vert (`npm run test:contract`)
 - [ ] **T-18** `/verify specs/001-task-api` : matrice de traçabilité 15/15 AC couverts
