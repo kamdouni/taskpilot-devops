@@ -10,6 +10,9 @@ api_platform:
         jsonproblem: ['application/problem+json']
     defaults:
         stateless: true
+        # Le contrat exige les champs nullables (description, dueDate) même à null
+        normalization_context:
+            skip_null_values: false
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']
         # RM-04 : 20 éléments par page, 50 au maximum

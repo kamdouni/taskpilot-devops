@@ -10,7 +10,7 @@
 
 ## Phase 1 — Création
 
-- [ ] **T-04** Entité `Task` + migration + `POST /api/tasks` avec valeurs par défaut — *AC-02*
+- [x] **T-04** Entité `Task` + migration + `POST /api/tasks` avec valeurs par défaut — *AC-02*
 - [ ] **T-05** Contraintes sur `title` (trim, NotBlank, Length 255) — *AC-03, AC-04*
 - [ ] **T-06** Contraintes `Choice` sur `status` et `priority` — *AC-05*
 - [ ] **T-07** Contrainte sur `dueDate` (pas dans le passé, seulement si modifiée) — *AC-06*
