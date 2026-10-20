@@ -1,0 +1,21 @@
+api_platform:
+    title: TaskPilot API
+    version: 1.0.0
+    formats:
+        json: ['application/json']
+    patch_formats:
+        json: ['application/merge-patch+json']
+    # ENF-02 : erreurs au format RFC 7807
+    error_formats:
+        jsonproblem: ['application/problem+json']
+    defaults:
+        stateless: true
+        # Le contrat exige les champs nullables (description, dueDate) même à null
+        normalization_context:
+            skip_null_values: false
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+        # RM-04 : 20 éléments par page, 50 au maximum
+        pagination_items_per_page: 20
+        pagination_maximum_items_per_page: 50
+        pagination_client_items_per_page: true
