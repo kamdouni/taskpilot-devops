@@ -27,7 +27,7 @@
 
 - [x] **T-13** `PATCH` merge-patch + `updatedAt` automatique — *AC-13*
 - [x] **T-14** Validation au `PATCH`, tâche inchangée en cas d'erreur — *AC-14*
-- [ ] **T-15** `DELETE` — *AC-15*
+- [x] **T-15** `DELETE` — *AC-15*
 
 ## Phase 4 — Vérification
 
