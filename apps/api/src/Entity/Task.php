@@ -18,6 +18,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 class Task
 {
+    public const array STATUSES = ['todo', 'in_progress', 'done'];
+    public const array PRIORITIES = ['low', 'medium', 'high'];
+
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     private Uuid $id;
@@ -31,9 +34,11 @@ class Task
     private ?string $description = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\Choice(choices: self::STATUSES)]
     private string $status = 'todo';
 
     #[ORM\Column(length: 20)]
+    #[Assert\Choice(choices: self::PRIORITIES)]
     private string $priority = 'medium';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]

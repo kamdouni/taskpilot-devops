@@ -80,4 +80,33 @@ final class TaskCreateTest extends JsonApiTestCase
 
         self::assertResponseStatusCodeSame(201);
     }
+
+    public function testAC05RejectsStatusOutsideEnumeration(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => 'Rédiger la spec', 'status' => 'archived'],
+        ]);
+
+        self::assertViolationOn($response, 'status');
+    }
+
+    public function testAC05RejectsPriorityOutsideEnumeration(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => 'Rédiger la spec', 'priority' => 'urgent'],
+        ]);
+
+        self::assertViolationOn($response, 'priority');
+    }
+
+    public function testAC05AcceptsStatusAndPriorityFromEnumeration(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => 'Rédiger la spec', 'status' => 'in_progress', 'priority' => 'high'],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('in_progress', $response->toArray()['status']);
+        self::assertSame('high', $response->toArray()['priority']);
+    }
 }
