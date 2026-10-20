@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -21,10 +22,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
-    operations: [new GetCollection(), new Get(), new Post()],
+    operations: [new GetCollection(), new Get(), new Post(), new Patch()],
     // RM-03 ; createdAt est à la seconde, l'id (UUID v7, ordonné dans le temps) départage les égalités
     order: ['createdAt' => 'DESC', 'id' => 'DESC'],
-    formats: ['json'],
     normalizationContext: ['groups' => ['task:read']],
     // RM-05 : id, createdAt et updatedAt ne sont pas dans le groupe d'écriture, donc ignorés
     denormalizationContext: ['groups' => ['task:write']],

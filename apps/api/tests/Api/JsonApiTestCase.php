@@ -43,4 +43,17 @@ abstract class JsonApiTestCase extends ApiTestCase
 
         return $response->toArray();
     }
+
+    /**
+     * @param array<string, mixed> $patch
+     */
+    protected static function patchTask(mixed $id, array $patch): ResponseInterface
+    {
+        self::assertIsString($id);
+
+        return static::createJsonClient()->request('PATCH', '/api/tasks/'.$id, [
+            'headers' => ['content-type' => 'application/merge-patch+json'],
+            'json' => $patch,
+        ]);
+    }
 }
