@@ -5,7 +5,7 @@
 ## Phase 0 — Socle
 
 - [x] **T-01** Installer les dépendances : `api`, `orm`, `symfony/uid`, `phpunit`, `dama/doctrine-test-bundle`, `phpstan`, `php-cs-fixer` — *aucun AC*
-- [ ] **T-02** Configurer `api_platform.yaml` (formats JSON, pagination 20/50, erreurs `problem+json`) et la base de test — *ENF-02*
+- [x] **T-02** Configurer `api_platform.yaml` (formats JSON, pagination 20/50, erreurs `problem+json`) et la base de test — *ENF-02*
 - [ ] **T-03** `GET /health` avec vérification de la base — *AC-01*
 
 ## Phase 1 — Création
