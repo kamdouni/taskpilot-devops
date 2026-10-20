@@ -2,6 +2,9 @@
 
 namespace App\Tests\Api;
 
+use App\Entity\Task;
+use Doctrine\ORM\EntityManagerInterface;
+
 final class TaskReadTest extends JsonApiTestCase
 {
     public function testAC08ReturnsExistingTask(): void
@@ -72,5 +75,48 @@ final class TaskReadTest extends JsonApiTestCase
         self::assertNotEmpty($tasks);
         self::assertSame(['high'], array_values(array_unique(array_column($tasks, 'priority'))));
         self::assertContains($high['id'], array_column($tasks, 'id'));
+    }
+
+    public function testAC12ItemsPerPageLimitsResults(): void
+    {
+        $this->seedTasks(3);
+
+        $tasks = static::createJsonClient()->request('GET', '/api/tasks?itemsPerPage=1')->toArray();
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertCount(1, $tasks);
+    }
+
+    public function testAC12ItemsPerPageIsCappedAt50(): void
+    {
+        $this->seedTasks(55);
+
+        $tasks = static::createJsonClient()->request('GET', '/api/tasks?itemsPerPage=500')->toArray();
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertCount(50, $tasks);
+    }
+
+    public function testAC12DefaultsTo20ItemsPerPage(): void
+    {
+        $this->seedTasks(25);
+
+        $tasks = static::createJsonClient()->request('GET', '/api/tasks')->toArray();
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertCount(20, $tasks);
+    }
+
+    private function seedTasks(int $count): void
+    {
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+        self::assertInstanceOf(EntityManagerInterface::class, $em);
+
+        for ($i = 1; $i <= $count; ++$i) {
+            $task = new Task();
+            $task->setTitle('Tâche '.$i);
+            $em->persist($task);
+        }
+        $em->flush();
     }
 }
