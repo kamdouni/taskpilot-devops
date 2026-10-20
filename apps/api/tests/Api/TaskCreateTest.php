@@ -109,4 +109,25 @@ final class TaskCreateTest extends JsonApiTestCase
         self::assertSame('in_progress', $response->toArray()['status']);
         self::assertSame('high', $response->toArray()['priority']);
     }
+
+    public function testAC06RejectsDueDateInThePast(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => 'Rédiger la spec', 'dueDate' => (new \DateTimeImmutable('yesterday'))->format('Y-m-d')],
+        ]);
+
+        self::assertViolationOn($response, 'dueDate');
+    }
+
+    public function testAC06AcceptsDueDateTodayAsPlainDate(): void
+    {
+        $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
+
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => 'Rédiger la spec', 'dueDate' => $today],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame($today, $response->toArray()['dueDate']);
+    }
 }

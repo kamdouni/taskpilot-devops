@@ -7,8 +7,11 @@ use ApiPlatform\Metadata\Post;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
@@ -42,7 +45,11 @@ class Task
     private string $priority = 'medium';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
     private ?\DateTimeImmutable $dueDate = null;
+
+    /** Vrai si dueDate a été définie depuis le chargement : seule une nouvelle date est validée. */
+    private bool $dueDateChanged = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -123,7 +130,21 @@ class Task
 
     public function setDueDate(?\DateTimeImmutable $dueDate): void
     {
+        if ($dueDate?->format('Y-m-d') !== $this->dueDate?->format('Y-m-d')) {
+            $this->dueDateChanged = true;
+        }
         $this->dueDate = $dueDate;
+    }
+
+    /** AC-06 : une date d'échéance ne peut pas être définie dans le passé. */
+    #[Assert\Callback]
+    public function validateDueDate(ExecutionContextInterface $context): void
+    {
+        if ($this->dueDateChanged && null !== $this->dueDate && $this->dueDate < new \DateTimeImmutable('today')) {
+            $context->buildViolation('La date d\'échéance ne peut pas être dans le passé.')
+                ->atPath('dueDate')
+                ->addViolation();
+        }
     }
 
     public function getCreatedAt(): \DateTimeImmutable
