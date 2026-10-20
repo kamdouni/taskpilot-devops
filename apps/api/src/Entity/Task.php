@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -18,6 +19,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ApiResource(
     operations: [new Post()],
     formats: ['json'],
+    normalizationContext: ['groups' => ['task:read']],
+    // RM-05 : id, createdAt et updatedAt ne sont pas dans le groupe d'écriture, donc ignorés
+    denormalizationContext: ['groups' => ['task:write']],
 )]
 class Task
 {
@@ -26,35 +30,43 @@ class Task
 
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[Groups(['task:read'])]
     private Uuid $id;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
+    #[Groups(['task:read', 'task:write'])]
     private string $title = '';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['task:read', 'task:write'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 20)]
     #[Assert\Choice(choices: self::STATUSES)]
+    #[Groups(['task:read', 'task:write'])]
     private string $status = 'todo';
 
     #[ORM\Column(length: 20)]
     #[Assert\Choice(choices: self::PRIORITIES)]
+    #[Groups(['task:read', 'task:write'])]
     private string $priority = 'medium';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Groups(['task:read', 'task:write'])]
     private ?\DateTimeImmutable $dueDate = null;
 
     /** Vrai si dueDate a été définie depuis le chargement : seule une nouvelle date est validée. */
     private bool $dueDateChanged = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['task:read'])]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['task:read'])]
     private \DateTimeImmutable $updatedAt;
 
     public function __construct()

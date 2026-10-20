@@ -130,4 +130,25 @@ final class TaskCreateTest extends JsonApiTestCase
         self::assertResponseStatusCodeSame(201);
         self::assertSame($today, $response->toArray()['dueDate']);
     }
+
+    public function testAC07IgnoresGeneratedFieldsSentByClient(): void
+    {
+        $forgedId = '01890000-0000-7000-8000-000000000000';
+        $forgedDate = '2000-01-01T00:00:00+00:00';
+
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => [
+                'title' => 'Rédiger la spec',
+                'id' => $forgedId,
+                'createdAt' => $forgedDate,
+                'updatedAt' => $forgedDate,
+            ],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        $task = $response->toArray();
+        self::assertNotSame($forgedId, $task['id']);
+        self::assertNotSame($forgedDate, $task['createdAt']);
+        self::assertNotSame($forgedDate, $task['updatedAt']);
+    }
 }
