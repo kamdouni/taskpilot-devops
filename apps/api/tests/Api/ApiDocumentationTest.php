@@ -3,11 +3,11 @@
 namespace App\Tests\Api;
 
 /**
- * Documentation interactive : doc générée (/api/docs) et contrat de référence (/api/contract).
+ * ENF-04 : documentation interactive, doc générée (/api/docs) et contrat de référence (/api/contract).
  */
 final class ApiDocumentationTest extends JsonApiTestCase
 {
-    public function testGeneratedDocumentationIncludesHealthEndpoint(): void
+    public function testENF04GeneratedDocumentationIncludesHealthEndpoint(): void
     {
         $response = static::createClient()->request('GET', '/api/docs', ['headers' => ['accept' => 'application/vnd.openapi+json']]);
 
@@ -19,7 +19,7 @@ final class ApiDocumentationTest extends JsonApiTestCase
         self::assertArrayHasKey('200', $doc['paths']['/health']['get']['responses']);
     }
 
-    public function testContractFileIsServed(): void
+    public function testENF04ContractFileIsServed(): void
     {
         $response = static::createClient()->request('GET', '/api/contract.yaml');
 
@@ -28,7 +28,7 @@ final class ApiDocumentationTest extends JsonApiTestCase
         self::assertStringStartsWith('openapi: 3.1.0', $response->getContent());
     }
 
-    public function testContractIsDisplayedInSwaggerUi(): void
+    public function testENF04ContractIsDisplayedInSwaggerUi(): void
     {
         $response = static::createClient()->request('GET', '/api/contract', ['headers' => ['accept' => 'text/html']]);
 

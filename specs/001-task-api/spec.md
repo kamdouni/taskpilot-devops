@@ -72,6 +72,7 @@ Chaque critère est couvert par un test PHPUnit **et** une requête Postman dont
 - **ENF-01** : `GET /api/tasks/{id}` répond en moins de 200 ms (p95) en local.
 - **ENF-02** : les erreurs suivent le format `application/problem+json` (RFC 7807), avec un tableau `violations` pour les erreurs `422`.
 - **ENF-03** : aucune stack trace n'est exposée en environnement `prod`.
+- **ENF-04** : une documentation interactive de l'API est consultable dans un navigateur. Elle décrit toutes les opérations exposées, y compris la santé, et permet de les essayer. Le contrat de référence est consultable sous la même forme, pour comparer ce que l'API expose à ce qui est attendu.
 
 ## 7. Questions ouvertes
 

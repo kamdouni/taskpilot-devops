@@ -13,6 +13,7 @@
 | Date d'échéance | `DateTimeImmutable` en type Doctrine `date_immutable` | Pas d'heure, pas de fuseau |
 | Horodatage | Callbacks Doctrine `PrePersist` / `PreUpdate` | Simple, sans dépendance supplémentaire |
 | Santé | Contrôleur dédié `GET /health` qui exécute `SELECT 1` | AC-01 |
+| Documentation | Swagger UI fourni par API Platform (`/api/docs`) + page Swagger UI du contrat (`/api/contract`) | ENF-04 |
 
 ## 2. Fichiers à créer
 
@@ -59,13 +60,26 @@ api_platform:
     pagination_client_items_per_page: true
 ```
 
-## 5. Stratégie de test
+## 5. Documentation de l'API (ENF-04)
+
+| URL | Contenu |
+|---|---|
+| `/api/docs` | Swagger UI de la documentation **générée** depuis le code (ReDoc : `?ui=re_doc`, Scalar : `?ui=scalar`) |
+| `/api/docs.jsonopenapi` | Document OpenAPI généré, en JSON |
+| `/api/contract` | Swagger UI du **contrat** `contracts/openapi.yaml` (source de vérité) |
+| `/api/contract.yaml` | Fichier du contrat brut ; `404` si `specs/` n'est pas livré avec l'application |
+
+- `src/OpenApi/HealthOpenApiFactory.php` décore `api_platform.openapi.factory` pour ajouter `GET /health` (contrôleur Symfony, hors API Platform) à la doc générée.
+- `src/Controller/ContractController.php` + `templates/contract.html.twig` réutilisent les assets Swagger UI du bundle API Platform : aucune dépendance supplémentaire.
+- La doc générée peut s'écarter du contrat (noms de schémas `Task-task.read`…) : en cas de divergence, le contrat fait foi.
+
+## 6. Stratégie de test
 
 - **PHPUnit** (`ApiTestCase`) : un test par critère, nommé `testAC02CreatesTaskWithDefaults`, base PostgreSQL de test réinitialisée par `dama/doctrine-test-bundle`.
 - **Postman / Newman** (worktree QA) : une requête par critère, nommée `AC-02 …`, jouée contre l'API réelle et contre le mock du contrat.
 - **Contrat** : `npm run test:contract` fait passer Newman par un proxy Prism qui valide chaque réponse réelle contre `openapi.yaml`.
 
-## 6. Risques
+## 7. Risques
 
 | Risque | Mitigation |
 |---|---|
