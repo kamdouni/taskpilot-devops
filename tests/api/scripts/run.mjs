@@ -65,7 +65,9 @@ async function main() {
   if (mode === 'contract') {
     if (!existsSync(OPENAPI)) throw new Error(`Contrat introuvable : ${OPENAPI} (définis OPENAPI=...)`);
     await waitFor(`${API_URL}/health`, "L'API");
-    start('npx', ['prism', 'proxy', OPENAPI, API_URL, '--port', '4011', '--errors'], 'prism');
+    // On valide les réponses de l'API, pas les requêtes : les cas AC-04 / AC-14 envoient
+    // volontairement un corps invalide, qui doit atteindre l'API au lieu d'être rejeté par Prism.
+    start('npx', ['prism', 'proxy', OPENAPI, API_URL, '--port', '4011', '--errors', '--validate-request', 'false'], 'prism');
     await waitFor('http://localhost:4011/health', 'Le proxy Prism');
     return runNewman('http://localhost:4011', 'contract');
   }
