@@ -2,6 +2,7 @@
 
 namespace App\Tests\Api;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Uid\Uuid;
 
 final class TaskCreateTest extends JsonApiTestCase
@@ -29,5 +30,54 @@ final class TaskCreateTest extends JsonApiTestCase
         self::assertNotFalse(\DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $task['createdAt']));
         self::assertIsString($task['updatedAt']);
         self::assertNotFalse(\DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $task['updatedAt']));
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[DataProvider('blankTitleProvider')]
+    public function testAC03RejectsMissingOrBlankTitle(array $payload): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', ['json' => $payload]);
+
+        self::assertViolationOn($response, 'title');
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function blankTitleProvider(): iterable
+    {
+        yield 'absent' => [['description' => 'Sans titre']];
+        yield 'vide' => [['title' => '']];
+        yield 'espaces' => [['title' => '   ']];
+    }
+
+    public function testAC03TitleIsTrimmed(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => '  Rédiger la spec  '],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('Rédiger la spec', $response->toArray()['title']);
+    }
+
+    public function testAC04RejectsTitleLongerThan255Characters(): void
+    {
+        $response = static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => str_repeat('a', 256)],
+        ]);
+
+        self::assertViolationOn($response, 'title');
+    }
+
+    public function testAC04Accepts255CharacterTitleAfterTrim(): void
+    {
+        static::createJsonClient()->request('POST', '/api/tasks', [
+            'json' => ['title' => ' '.str_repeat('a', 255).' '],
+        ]);
+
+        self::assertResponseStatusCodeSame(201);
     }
 }

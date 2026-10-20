@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
@@ -22,6 +23,8 @@ class Task
     private Uuid $id;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $title = '';
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -72,9 +75,10 @@ class Task
         return $this->title;
     }
 
+    /** RM-01 : le titre est nettoyé avant validation. */
     public function setTitle(string $title): void
     {
-        $this->title = $title;
+        $this->title = trim($title);
     }
 
     public function getDescription(): ?string
