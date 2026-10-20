@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -27,6 +29,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
     // RM-05 : id, createdAt et updatedAt ne sont pas dans le groupe d'écriture, donc ignorés
     denormalizationContext: ['groups' => ['task:write']],
 )]
+#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact', 'priority' => 'exact'])]
 class Task
 {
     public const array STATUSES = ['todo', 'in_progress', 'done'];

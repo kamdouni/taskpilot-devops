@@ -45,4 +45,32 @@ final class TaskReadTest extends JsonApiTestCase
         usort($sorted, static fn (string $a, string $b): int => new \DateTimeImmutable($b) <=> new \DateTimeImmutable($a));
         self::assertSame($sorted, $createdAts);
     }
+
+    public function testAC11FiltersByStatus(): void
+    {
+        $todo = self::createTask(['title' => 'À faire']);
+        self::createTask(['title' => 'En cours', 'status' => 'in_progress']);
+        self::createTask(['title' => 'Terminée', 'status' => 'done']);
+
+        $tasks = static::createJsonClient()->request('GET', '/api/tasks?status=todo')->toArray();
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertNotEmpty($tasks);
+        self::assertSame(['todo'], array_values(array_unique(array_column($tasks, 'status'))));
+        self::assertContains($todo['id'], array_column($tasks, 'id'));
+    }
+
+    public function testAC11FiltersByPriority(): void
+    {
+        $high = self::createTask(['title' => 'Urgente', 'priority' => 'high']);
+        self::createTask(['title' => 'Normale']);
+        self::createTask(['title' => 'Plus tard', 'priority' => 'low']);
+
+        $tasks = static::createJsonClient()->request('GET', '/api/tasks?priority=high')->toArray();
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertNotEmpty($tasks);
+        self::assertSame(['high'], array_values(array_unique(array_column($tasks, 'priority'))));
+        self::assertContains($high['id'], array_column($tasks, 'id'));
+    }
 }
