@@ -26,4 +26,23 @@ final class TaskReadTest extends JsonApiTestCase
         self::assertResponseStatusCodeSame(404);
         self::assertResponseHeaderSame('content-type', 'application/problem+json');
     }
+
+    public function testAC10ListsTasksAsJsonArrayNewestFirst(): void
+    {
+        $first = self::createTask(['title' => 'Première']);
+        $second = self::createTask(['title' => 'Deuxième']);
+        $third = self::createTask(['title' => 'Troisième']);
+
+        $response = static::createJsonClient()->request('GET', '/api/tasks');
+
+        self::assertResponseStatusCodeSame(200);
+        $tasks = $response->toArray();
+        self::assertTrue(array_is_list($tasks), 'La collection doit être un tableau JSON, pas un objet');
+        self::assertSame([$third['id'], $second['id'], $first['id']], array_column($tasks, 'id'));
+
+        $createdAts = array_column($tasks, 'createdAt');
+        $sorted = $createdAts;
+        usort($sorted, static fn (string $a, string $b): int => new \DateTimeImmutable($b) <=> new \DateTimeImmutable($a));
+        self::assertSame($sorted, $createdAts);
+    }
 }

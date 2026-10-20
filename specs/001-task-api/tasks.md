@@ -19,7 +19,7 @@
 ## Phase 2 — Lecture
 
 - [x] **T-09** `GET /api/tasks/{id}` et `404` sur UUID inconnu — *AC-08, AC-09*
-- [ ] **T-10** `GET /api/tasks` trié par `createdAt` décroissant — *AC-10*
+- [x] **T-10** `GET /api/tasks` trié par `createdAt` décroissant — *AC-10*
 - [ ] **T-11** Filtre `status` / `priority` — *AC-11*
 - [ ] **T-12** Pagination `itemsPerPage` plafonnée à 50 — *AC-12*
 
